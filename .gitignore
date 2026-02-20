@@ -1,16 +1,11 @@
-# Node modules
-node_modules/
+# Node backend
+backend/node_modules/
+backend/.env
 
-# Environment variables
-.env
+# React frontend
+frontend/node_modules/
+frontend/.env
+frontend/build/
 
-# Logs
-logs/
-*.log
-
-# Build directories
-dist/
-build/
-
-# VS Code settings
-.vscode/
+# System
+.DS_Store

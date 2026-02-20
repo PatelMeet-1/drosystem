@@ -10,10 +10,10 @@ exports.createAdmin = async (req, res) => {
       return res.status(400).json({ message: "Username and password required" });
     }
 
-    const exists = await Admin.findOne({ username });
-
-    if (exists) {
-      return res.status(400).json({ message: "Admin already exists" });
+    // Only allow 1 admin
+    const adminCount = await Admin.countDocuments();
+    if (adminCount > 0) {
+      return res.status(400).json({ message: "Only one admin is allowed" });
     }
 
     const admin = new Admin({ username, password });
@@ -21,6 +21,7 @@ exports.createAdmin = async (req, res) => {
 
     res.status(201).json({ message: "Admin created successfully" });
   } catch (err) {
+    console.error("Create Admin Error:", err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -35,30 +36,24 @@ exports.loginAdmin = async (req, res) => {
     }
 
     const admin = await Admin.findOne({ username }).select("+password");
-    if (!admin) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+    if (!admin) return res.status(401).json({ message: "Invalid credentials" });
 
     const isMatch = await admin.matchPassword(password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+    if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
 
     const token = jwt.sign(
       { id: admin._id },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || "secretkey",
       { expiresIn: "1d" }
     );
 
     res.json({
       message: "Login successful",
       token,
-      admin: {
-        id: admin._id,
-        username: admin.username,
-      },
+      admin: { id: admin._id, username: admin.username },
     });
   } catch (err) {
+    console.error("Login Admin Error:", err);
     res.status(500).json({ error: err.message });
   }
 };

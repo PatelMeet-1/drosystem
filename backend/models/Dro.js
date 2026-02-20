@@ -1,28 +1,16 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-const droResultSchema = new mongoose.Schema(
-  {
-    droId: mongoose.Schema.Types.ObjectId,
-    title: String,
+const droSchema = new mongoose.Schema({
+  date: { type: String, required: true },
+  time: { type: String, required: true },
+  totalMembers: { type: Number, required: true },
+  order: [{
+    position: { type: Number, required: true },
+    suffix: { type: String, required: true },
+    name: { type: String, required: true },
+    memberId: { type: String, required: true }
+  }],
+  createdAt: { type: Date, default: Date.now }
+}, { timestamps: true });
 
-    drawDate: String,
-    drawTime: String,
-
-    result: [
-      {
-        memberId: String,
-        name: String,
-        email: String,
-        position: Number,
-      },
-    ],
-
-    createdAt: {
-      type: Date,
-      default: Date.now,
-      expires: 21600, // 🔥 6 HOURS (TTL Index)
-    },
-  }
-);
-
-module.exports = mongoose.model("DroResult", droResultSchema);
+module.exports = mongoose.model('Dro', droSchema);
