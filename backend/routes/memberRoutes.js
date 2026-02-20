@@ -8,7 +8,7 @@ const {
   updateMember,
   deleteMember,
   loginMember, // ← import the new login function
-} = require("../controllers/memberController");
+} = require("../controllers/membercontrollers");
 
 // 🔹 Public login route (no auth)
 router.post("/login", loginMember);
