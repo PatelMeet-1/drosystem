@@ -10,7 +10,14 @@ const droSchema = new mongoose.Schema({
     name: { type: String, required: true },
     memberId: { type: String, required: true }
   }],
-  createdAt: { type: Date, default: Date.now }
+  hours: { type: Number, min: 0, required: true },
+  minutes: { type: Number, min: 0, required: true },
+  seconds: { type: Number, min: 0, required: true },
+  deleteAfter: { type: Date, required: true },
+  createdBy: { type: String }
 }, { timestamps: true });
+
+// 🔥 MONGODB AUTO DELETE - GLOBAL TIMER BASED
+droSchema.index({ deleteAfter: 1 }, { expireAfterSeconds: 0 });
 
 module.exports = mongoose.model('Dro', droSchema);

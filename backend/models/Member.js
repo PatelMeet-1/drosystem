@@ -23,6 +23,12 @@ const memberSchema = new mongoose.Schema({
     required: [true, "Password required"],
     select: false 
   },
+  
+  // 🔥 NEW DRO ACCESS FIELD ADD KARO
+  droAccess: {
+    enabled: { type: Boolean, default: false },
+    selectedMember: String
+  }
 }, { timestamps: true });
 
 // HASH PASSWORD BEFORE SAVE ✅

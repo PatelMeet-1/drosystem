@@ -9,6 +9,10 @@ const droRoutes = require("./routes/dro");
 
 const app = express();
 
+// 🔥 GLOBAL TIMER SETUP - SAB USERS KE LIYE (YE LINE ADD KARO)
+app.locals.globalTimer = { hours: 0, minutes: 0, seconds: 5 }; // Default 5 seconds
+console.log('🚀 Server started with DEFAULT GLOBAL TIMER: 00h:00m:05s');
+
 // MIDDLEWARE
 app.use(cors());
 app.use(express.json());
