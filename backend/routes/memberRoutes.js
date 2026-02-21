@@ -10,6 +10,10 @@ const {
   loginMember, // ← import the new login function
 } = require("../controllers/membercontrollers");
 
+
+
+// 🔥 YE LINE ADD KARO 👇 (end mein)
+router.put("/profile", auth, updateMember);  // Personal profile ke liye
 // 🔹 Public login route (no auth)
 router.post("/login", loginMember);
 

@@ -1,5 +1,6 @@
 const Member = require("../models/Member");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken"); // 🔥 YE ADD KIA
 
 // ADD MEMBER
 exports.addMember = async (req, res) => {
@@ -60,9 +61,11 @@ exports.getMemberById = async (req, res) => {
   }
 };
 
-// UPDATE MEMBER
+// UPDATE MEMBER - 🔥 PERFECT (Aapne already fix kiya)
 exports.updateMember = async (req, res) => {
   try {
+    const id = req.params.id || req.user?.id || req.user?._id; // 🔥 Profile ke liye ye chalega
+    
     const updateData = {
       name: req.body.name,
       contact: req.body.contact,
@@ -72,7 +75,7 @@ exports.updateMember = async (req, res) => {
       updateData.password = await bcrypt.hash(req.body.password, 12);
     }
 
-    const member = await Member.findByIdAndUpdate(req.params.id, updateData, {
+    const member = await Member.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
     }).select("-password");
@@ -97,7 +100,7 @@ exports.deleteMember = async (req, res) => {
   }
 };
 
-// MEMBER LOGIN (new secure endpoint)
+// 🔥 LOGIN FUNCTION - REAL JWT TOKEN!
 exports.loginMember = async (req, res) => {
   try {
     const { memberId, password } = req.body;
@@ -111,11 +114,18 @@ exports.loginMember = async (req, res) => {
     const isMatch = await member.matchPassword(password);
     if (!isMatch) return res.status(400).json({ message: "Invalid password" });
 
-    // Optional: generate JWT token
-    const token = "dummy-token"; // replace with real JWT
+    // 🔥 REAL JWT TOKEN GENERATE KARO
+    const token = jwt.sign(
+      { 
+        id: member._id, 
+        memberId: member.memberId 
+      }, 
+      process.env.JWT_SECRET || 'supersecretdevkey2026', // 🔥 Secret key
+      { expiresIn: '7d' }
+    );
 
     res.json({
-      token,
+      token,  // 🔥 YE REAL TOKEN HAI!
       member: {
         id: member._id,
         memberId: member.memberId,

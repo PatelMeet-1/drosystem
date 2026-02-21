@@ -13,24 +13,6 @@ const Sidebar = () => {
   const isAdmin = !!token;  // Admin if token exists
   const isUser = !!user && !token;  // User if user exists but no token
 
-  // 🔹 Get user name
-  let userName = "User";
-  if (token) {
-    try {
-      const adminData = JSON.parse(token);
-      userName = adminData.name || adminData.username || "Admin";
-    } catch {
-      userName = "Admin";
-    }
-  } else if (user) {
-    try {
-      const userData = JSON.parse(user);
-      userName = userData.name || userData.username || "User";
-    } catch {
-      userName = "User";
-    }
-  }
-
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -65,11 +47,6 @@ const Sidebar = () => {
           zIndex: 1100,
         }}
       >
-        {/* 🔹 USER NAME - TOP */}
-        <div className="text-center mb-4 p-3">
-          <h5 className="mb-0 text-white-50">{userName}</h5>
-        </div>
-
         <h4 className="text-center mb-4 text-info">
           {isAdmin ? "Admin Panel" : isUser ? "User Panel" : ""}
         </h4>

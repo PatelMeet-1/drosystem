@@ -76,10 +76,17 @@ const AddMember = () => {
     setLoading(true);
     try {
       let res;
+      let payload;
+      
+      // 🔥 PASSWORD FIX - Only send password if it's not empty
       if (editMember) {
+        payload = { name, contact };
+        if (password.trim()) {
+          payload.password = password;
+        }
         res = await axios.put(
           `https://drosystem-3.onrender.com/api/members/${editMember._id}`,
-          { name, contact, password },
+          payload,
           config
         );
         setToastMessage(res.data.message || "Member updated successfully!");
@@ -130,7 +137,7 @@ const AddMember = () => {
     setMemberId(member.memberId);
     setName(member.name);
     setContact(member.contact);
-    setPassword("");
+    setPassword(""); // Always reset password for edit
     setShowModal(true);
   };
 
@@ -373,10 +380,10 @@ const AddMember = () => {
               />
             </Form.Group>
             <Form.Group className="mb-3" controlId="editPassword">
-              <Form.Label>Password</Form.Label>
+              <Form.Label>New Password <span className="text-muted fs-6">(optional)</span></Form.Label>
               <Form.Control
                 type="password"
-                placeholder="Enter new password (optional)"
+                placeholder="Leave blank to keep current password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
