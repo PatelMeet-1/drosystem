@@ -41,7 +41,7 @@ const AddMember = () => {
     
     try {
       const res = await axios.post(
-        'http://localhost:5000/api/dro/admin/assign-dro-access',
+        'https://drosystem-3.onrender.com/api/dro/admin/assign-dro-access',
         { memberName },
         config
       );
@@ -60,7 +60,7 @@ const AddMember = () => {
 
   const fetchMembers = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/members/", config);
+      const res = await axios.get("https://drosystem-3.onrender.com/api/members/", config);
       setMembers(res.data.data || []);
     } catch (err) {
       console.error("Failed to fetch members", err);
@@ -78,7 +78,7 @@ const AddMember = () => {
       let res;
       if (editMember) {
         res = await axios.put(
-          `http://localhost:5000/api/members/${editMember._id}`,
+          `https://drosystem-3.onrender.com/api/members/${editMember._id}`,
           { name, contact, password },
           config
         );
@@ -86,7 +86,7 @@ const AddMember = () => {
         setEditMember(null);
       } else {
         res = await axios.post(
-          "http://localhost:5000/api/members/add",
+          "https://drosystem-3.onrender.com/api/members/add",
           { memberId, name, contact, password },
           config
         );
@@ -113,7 +113,7 @@ const AddMember = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this member?")) return;
     try {
-      await axios.delete(`http://localhost:5000/api/members/${id}`, config);
+      await axios.delete(`https://drosystem-3.onrender.com/api/members/${id}`, config);
       setToastMessage("Member deleted successfully!");
       setToastVariant("success");
       setShowToast(true);
@@ -144,32 +144,27 @@ const AddMember = () => {
   };
 
   return (
-  <div className="container py-4">
-
-    {/* 🔹 TOGGLE FORM BUTTON */}
-    <div className="d-flex justify-content-center justify-content-md-start mb-4">
+    <div className="container py-5">
+      {/* Toggle Form Button */}
       <Button
-        className="w-100 w-md-auto"
+        className="mb-4 w-100 w-md-auto"
         variant={showForm ? "secondary" : "primary"}
         onClick={() => setShowForm(!showForm)}
       >
-        {showForm ? "Hide Registration Form" : "Add New Member"}
+        {showForm ? "Hide Registration Form" : "Show Registration Form"}
       </Button>
-    </div>
 
-    {/* 🔹 REGISTRATION FORM */}
-    {showForm && (
-      <Card className="shadow border-0 mb-4 mx-auto" style={{ maxWidth: "600px" }}>
-        <Card.Body>
-          <h4 className="mb-4 text-center text-primary">
-            {editMember ? "Edit Member" : "Add Member"}
-          </h4>
-
+      {/* Registration Form */}
+      {showForm && (
+        <Card className="shadow-lg border-0 p-4 mb-4 mx-auto" style={{ maxWidth: "600px" }}>
+          <h3 className="mb-4 text-primary">{editMember ? "Edit Member" : "Add New Member"}</h3>
           <Form onSubmit={handleSubmit}>
             {!editMember && (
-              <Form.Group className="mb-3">
+              <Form.Group className="mb-3" controlId="formMemberId">
                 <Form.Label>Member ID</Form.Label>
                 <Form.Control
+                  type="text"
+                  placeholder="Enter member ID"
                   value={memberId}
                   onChange={(e) => setMemberId(e.target.value)}
                   required
@@ -177,157 +172,223 @@ const AddMember = () => {
               </Form.Group>
             )}
 
-            <Form.Group className="mb-3">
+            <Form.Group className="mb-3" controlId="formName">
               <Form.Label>Name</Form.Label>
               <Form.Control
+                type="text"
+                placeholder="Enter full name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
               />
             </Form.Group>
 
-            <Form.Group className="mb-3">
+            <Form.Group className="mb-3" controlId="formContact">
               <Form.Label>Contact</Form.Label>
               <Form.Control
+                type="text"
+                placeholder="Enter contact number"
                 value={contact}
                 onChange={(e) => setContact(e.target.value)}
                 required
               />
             </Form.Group>
 
-            <Form.Group className="mb-4">
+            <Form.Group className="mb-4" controlId="formPassword">
               <Form.Label>Password</Form.Label>
               <Form.Control
                 type="password"
-                placeholder={editMember ? "Optional" : "Required"}
+                placeholder={editMember ? "Enter new password (optional)" : "Enter password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required={!editMember}
               />
             </Form.Group>
 
-            <Button type="submit" className="w-100" disabled={loading}>
-              {loading ? "Please wait..." : editMember ? "Update Member" : "Add Member"}
+            <Button variant="primary" type="submit" disabled={loading} className="w-100">
+              {loading ? (
+                <>
+                  <Spinner animation="border" size="sm" className="me-2" />
+                  {editMember ? "Updating..." : "Adding..."}
+                </>
+              ) : editMember ? (
+                "Update Member"
+              ) : (
+                "Add Member"
+              )}
             </Button>
           </Form>
-        </Card.Body>
-      </Card>
-    )}
+        </Card>
+      )}
 
-    {/* 🔹 MEMBERS LIST */}
-    <h5 className="mb-3 text-primary">All Members</h5>
+      {/* Members Table */}
+      <div className="mb-4">
+        <h5 className="mb-3 text-primary">All Members</h5>
 
-    {/* ================= DESKTOP TABLE ================= */}
-    <div className="d-none d-md-block">
-      <Card className="shadow border-0">
-        <Table responsive hover bordered className="mb-0">
-          <thead className="table-dark">
-            <tr>
-              <th>#</th>
-              <th>Member ID</th>
-              <th>Name</th>
-              <th>Contact</th>
-              <th>DRO</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {members.length === 0 ? (
-              <tr>
-                <td colSpan="6" className="text-center">
-                  No Members Found
-                </td>
-              </tr>
-            ) : (
-              members.map((m, i) => (
-                <tr key={m._id}>
-                  <td>{i + 1}</td>
-                  <td>{m.memberId}</td>
-                  <td>{m.name}</td>
-                  <td>{m.contact}</td>
-                  <td>
-                    {m.droAccess?.enabled ? (
-                      <Badge bg="success">Active</Badge>
+        {/* Desktop Table */}
+        <div className="d-none d-md-block">
+          <Card className="shadow-lg border-0 p-3">
+            <Table striped bordered hover responsive>
+              <thead className="table-dark">
+                <tr>
+                  <th>#</th>
+                  <th>Member ID</th>
+                  <th>Name</th>
+                  <th>Contact</th>
+                  <th>DRO Access</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {members.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="text-center">
+                      No members found
+                    </td>
+                  </tr>
+                ) : (
+                  members.map((member, index) => (
+                    <tr key={member._id}>
+                      <td>{index + 1}</td>
+                      <td>{member.memberId}</td>
+                      <td>{member.name}</td>
+                      <td>{member.contact}</td>
+                      <td>
+                        {member.droAccess?.enabled ? (
+                          <Badge bg="success">✅ DRO Active</Badge>
+                        ) : (
+                          <Button 
+                            size="sm" 
+                            variant="outline-success"
+                            onClick={() => assignDroAccess(member.name)}
+                          >
+                            Assign DRO
+                          </Button>
+                        )}
+                      </td>
+                      <td>
+                        <Button 
+                          size="sm" 
+                          variant="warning" 
+                          className="me-2" 
+                          onClick={() => handleEdit(member)}
+                        >
+                          Edit
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="danger" 
+                          onClick={() => handleDelete(member._id)}
+                        >
+                          Delete
+                        </Button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </Table>
+          </Card>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="d-block d-md-none">
+          {members.length === 0 ? (
+            <p className="text-center">No members found</p>
+          ) : (
+            members.map((member, index) => (
+              <Card key={member._id} className="mb-3 shadow-sm">
+                <Card.Body>
+                  <p className="mb-1"><strong>#{index + 1}</strong></p>
+                  <p className="mb-1"><strong>Member ID:</strong> {member.memberId}</p>
+                  <p className="mb-1"><strong>Name:</strong> {member.name}</p>
+                  <p className="mb-1"><strong>Contact:</strong> {member.contact}</p>
+                  
+                  <div className="mb-2">
+                    {member.droAccess?.enabled ? (
+                      <Badge bg="success">✅ DRO Active</Badge>
                     ) : (
-                      <Button size="sm" variant="outline-success"
-                        onClick={() => assignDroAccess(m.name)}>
-                        Assign
+                      <Button 
+                        size="sm" 
+                        variant="outline-success" 
+                        className="me-2"
+                        onClick={() => assignDroAccess(member.name)}
+                      >
+                        Assign DRO
                       </Button>
                     )}
-                  </td>
-                  <td>
-                    <Button size="sm" variant="warning" className="me-2"
-                      onClick={() => handleEdit(m)}>
+                  </div>
+                  
+                  <div className="d-flex justify-content-between mt-2">
+                    <Button size="sm" variant="warning" onClick={() => handleEdit(member)}>
                       Edit
                     </Button>
-                    <Button size="sm" variant="danger"
-                      onClick={() => handleDelete(m._id)}>
+                    <Button size="sm" variant="danger" onClick={() => handleDelete(member._id)}>
                       Delete
                     </Button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </Table>
-      </Card>
+                  </div>
+                </Card.Body>
+              </Card>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Toast Notification */}
+      <ToastContainer className="p-3" position="top-end">
+        <Toast 
+          bg={toastVariant} 
+          onClose={() => setShowToast(false)} 
+          show={showToast} 
+          delay={3000} 
+          autohide
+        >
+          <Toast.Body className="text-white">{toastMessage}</Toast.Body>
+        </Toast>
+      </ToastContainer>
+
+      {/* Edit Modal */}
+      <Modal show={showModal} onHide={handleCloseModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit Member</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-3" controlId="editName">
+              <Form.Label>Name</Form.Label>
+              <Form.Control 
+                type="text" 
+                value={name} 
+                onChange={(e) => setName(e.target.value)} 
+                required 
+              />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="editContact">
+              <Form.Label>Contact</Form.Label>
+              <Form.Control 
+                type="text" 
+                value={contact} 
+                onChange={(e) => setContact(e.target.value)} 
+                required 
+              />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="editPassword">
+              <Form.Label>Password</Form.Label>
+              <Form.Control
+                type="password"
+                placeholder="Enter new password (optional)"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </Form.Group>
+            <Button variant="primary" type="submit" className="w-100">
+              Update Member
+            </Button>
+          </Form>
+        </Modal.Body>
+      </Modal>
     </div>
-
-    {/* ================= MOBILE CARD VIEW ================= */}
-    <div className="d-block d-md-none">
-      {members.length === 0 ? (
-        <p className="text-center">No Members Found</p>
-      ) : (
-        members.map((m, i) => (
-          <Card key={m._id} className="mb-3 shadow-sm">
-            <Card.Body>
-              <div className="fw-bold mb-2">#{i + 1}</div>
-              <p className="mb-1"><strong>ID:</strong> {m.memberId}</p>
-              <p className="mb-1"><strong>Name:</strong> {m.name}</p>
-              <p className="mb-1"><strong>Contact:</strong> {m.contact}</p>
-
-              <div className="mb-2">
-                {m.droAccess?.enabled ? (
-                  <Badge bg="success">DRO Active</Badge>
-                ) : (
-                  <Button size="sm" variant="outline-success"
-                    onClick={() => assignDroAccess(m.name)}>
-                    Assign DRO
-                  </Button>
-                )}
-              </div>
-
-              <div className="d-flex gap-2">
-                <Button size="sm" variant="warning" className="w-50"
-                  onClick={() => handleEdit(m)}>
-                  Edit
-                </Button>
-                <Button size="sm" variant="danger" className="w-50"
-                  onClick={() => handleDelete(m._id)}>
-                  Delete
-                </Button>
-              </div>
-            </Card.Body>
-          </Card>
-        ))
-      )}
-    </div>
-
-    {/* 🔹 TOAST */}
-    <ToastContainer position="top-end" className="p-3">
-      <Toast
-        show={showToast}
-        bg={toastVariant}
-        delay={3000}
-        autohide
-        onClose={() => setShowToast(false)}
-      >
-        <Toast.Body className="text-white">{toastMessage}</Toast.Body>
-      </Toast>
-    </ToastContainer>
-
-  </div>
-);
+  );
 };
 
 export default AddMember;

@@ -21,7 +21,7 @@ const Login = () => {
     try {
       if (role === "admin") {
         // 👨‍💼 Admin login
-        const res = await axios.post("http://localhost:5000/api/admin/login", {
+        const res = await axios.post("https://drosystem-3.onrender.com/api/admin/login", {
           username,
           password,
         });
@@ -29,7 +29,7 @@ const Login = () => {
         navigate("/add-member"); // ✅ Admin → Add Member
       } else {
         // 👤 User login - FIXED ROUTE
-        const res = await axios.post("http://localhost:5000/api/members/login", {
+        const res = await axios.post("https://drosystem-3.onrender.com/api/members/login", {
           memberId: username,
           password,
         });

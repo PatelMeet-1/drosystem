@@ -59,7 +59,7 @@ const Dro = () => {
   const fetchMembersForDro = async () => {
     setMembersLoading(true);
     try {
-      const res = await axios.get('http://localhost:5000/api/members/', publicConfig);
+      const res = await axios.get('https://drosystem-3.onrender.com/api/members/', publicConfig);
       setMembers(Array.isArray(res.data) ? res.data : res.data.data || []);
       setError('');
     } catch (err) {
@@ -72,7 +72,7 @@ const Dro = () => {
 
   const fetchDroHistory = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/dro/history', privateConfig);
+      const res = await axios.get('https://drosystem-3.onrender.com/api/dro/history', privateConfig);
       setDroHistory(res.data || []);
     } catch (err) {
       setDroHistory([]);
@@ -82,7 +82,7 @@ const Dro = () => {
   // 🔥 GLOBAL TIMER FETCH - SAB USERS KE LIYE
   const fetchGlobalTimer = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/dro/get-timer', privateConfig);
+      const res = await axios.get('https://drosystem-3.onrender.com/api/dro/get-timer', privateConfig);
       setGlobalTimer(res.data.timer || { hours: 0, minutes: 0, seconds: 5 });
     } catch (err) {
       setGlobalTimer({ hours: 0, minutes: 0, seconds: 5 });
@@ -93,7 +93,7 @@ const Dro = () => {
     if (!token) return;
     setAdminMembersLoading(true);
     try {
-      const res = await axios.get('http://localhost:5000/api/dro/members-with-status', privateConfig);
+      const res = await axios.get('https://drosystem-3.onrender.com/api/dro/members-with-status', privateConfig);
       setMembersWithStatus(res.data || []);
     } catch (err) {
       setMembersWithStatus([]);
@@ -105,7 +105,7 @@ const Dro = () => {
   const checkCurrentUserDroStatus = async () => {
     if (!userName) return;
     try {
-      const res = await axios.get(`http://localhost:5000/api/dro/check/${encodeURIComponent(userName)}`);
+      const res = await axios.get(`https://drosystem-3.onrender.com/api/dro/check/${encodeURIComponent(userName)}`);
       setIsDroUser(res.data.hasDroAccess);
     } catch (err) {
       setIsDroUser(false);
@@ -140,7 +140,7 @@ const Dro = () => {
     };
 
     try {
-      await axios.post('http://localhost:5000/api/dro/save', droData, privateConfig);
+      await axios.post('https://drosystem-3.onrender.com/api/dro/save', droData, privateConfig);
       await fetchDroHistory();
       alert(`🎉 DRO SAVED!\n⏰ Auto-delete: ${safeToString(globalTimer.hours)}h:${safeToString(globalTimer.minutes)}m:${safeToString(globalTimer.seconds)}s\n🥇 1st: ${shuffledMembers[0].name}`);
     } catch (err) {
@@ -154,7 +154,7 @@ const Dro = () => {
   const handleSetGlobalTimer = async () => {
     setTimerLoading(true);
     try {
-      await axios.post('http://localhost:5000/api/dro/set-timer', globalTimer, privateConfig);
+      await axios.post('https://drosystem-3.onrender.com/api/dro/set-timer', globalTimer, privateConfig);
       alert(`✅ GLOBAL TIMER SET!\n${safeToString(globalTimer.hours)}h:${safeToString(globalTimer.minutes)}m:${safeToString(globalTimer.seconds)}s\n💥 Sab users ke naye DRO isme delete honge!`);
       await fetchGlobalTimer(); // Refresh
       setShowTimerModal(false);
@@ -190,7 +190,7 @@ const Dro = () => {
       const endpoint = confirmAction === 'assign' 
         ? '/api/dro/admin/assign-dro-access'
         : '/api/dro/admin/remove-dro-access';
-      await axios.post(`http://localhost:5000${endpoint}`, { memberName: confirmMemberName }, privateConfig);
+      await axios.post(`https://drosystem-3.onrender.com/${endpoint}`, { memberName: confirmMemberName }, privateConfig);
       alert(`${confirmMemberName} ka DRO access ${confirmAction === 'assign' ? 'de diya!' : 'hata diya!'}`);
       await fetchMembersWithDroStatus();
     } catch (err) {
