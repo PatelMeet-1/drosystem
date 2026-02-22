@@ -23,6 +23,8 @@ const memberSchema = new mongoose.Schema({
     required: [true, "Password required"],
     select: false 
   },
+  
+  // 🔥 NEW DRO ACCESS FIELD ADD KARO
   droAccess: {
     enabled: { type: Boolean, default: false },
     selectedMember: String
@@ -39,5 +41,4 @@ memberSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// 🔥 FIXED LINE 44 - YE CHANGE KARO!
-module.exports = mongoose.models.Member || mongoose.model("Member", memberSchema);
+module.exports = mongoose.model("Member", memberSchema);
