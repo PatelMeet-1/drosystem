@@ -31,7 +31,7 @@ const PersonalProfile = () => {
     
     try {
       // User update API - YE ENDPOINT APNE BACKEND ME BANANA PADega
-      const response = await fetch('https://drosystem-3.onrender.com/api/users/update-profile', {
+      const response = await fetch('https://drosystem.onrender.com/api/users/update-profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, contact, password })
