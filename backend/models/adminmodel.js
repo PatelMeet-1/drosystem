@@ -1,33 +1,44 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
-const adminSchema = new mongoose.Schema(
-  {
-    username: {
-      type: String,
-      required: [true, "Username is required"],
-      unique: true,
-      trim: true,
-    },
-    password: {
-      type: String,
-      required: [true, "Password is required"],
-      select: false, // hide by default
-    },
+const memberSchema = new mongoose.Schema({
+  memberId: { 
+    type: String, 
+    required: [true, "Member ID required"], 
+    unique: true,
+    trim: true 
   },
-  { timestamps: true }
-);
+  name: { 
+    type: String, 
+    required: [true, "Name required"], 
+    trim: true 
+  },
+  contact: { 
+    type: String, 
+    required: [true, "Contact required"],
+    trim: true 
+  },
+  password: { 
+    type: String, 
+    required: [true, "Password required"],
+    select: false 
+  },
+  // 🔥 DRO ACCESS FIELD
+  droAccess: {
+    enabled: { type: Boolean, default: false },
+    assignedAt: { type: Date, default: null },
+    memberId: String
+  }
+}, { timestamps: true });
 
-// 🔐 Auto Hash Password before saving
-adminSchema.pre("save", async function () {
+// 🔥 PASSWORD HASHING
+memberSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
-  const salt = await bcrypt.genSalt(12);
-  this.password = await bcrypt.hash(this.password, salt);
+  this.password = await bcrypt.hash(this.password, 12);
 });
 
-// 🔍 Match Password method
-adminSchema.methods.matchPassword = async function (enteredPassword) {
+memberSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-module.exports = mongoose.model("Admin", adminSchema);
+module.exports = mongoose.model("Member", memberSchema);

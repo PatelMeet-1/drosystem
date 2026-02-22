@@ -1,13 +1,12 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Sidebar from "./component/Sidebar";
 import AddMember from "./component/AddMember";
+import PersonalProfile from "./component/personalprofile"; 
 import Dro from "./component/Dro";
 import Login from "./component/adminlogin";
-import ProtectedRoute from "./component/ProtectedRoute";
 
 const PageWrapper = ({ children }) => {
-  // 🔹 Role Based Logic
   const token = localStorage.getItem("token");
   const user = localStorage.getItem("user");
   const isAdmin = !!token;
@@ -15,23 +14,13 @@ const PageWrapper = ({ children }) => {
   const hasAccess = isAdmin || isUser;
 
   return (
-    <ProtectedRoute>
-      <div className="d-flex min-vh-100">
-        {/* ✅ Sidebar - Role Based */}
-        {hasAccess && <Sidebar />}
-
-        {/* ✅ Spacer - Dynamic Width */}
-        <div
-          className="d-none d-md-block flex-shrink-0"
-          style={{ width: hasAccess ? "250px" : "0" }}
-        ></div>
-
-        {/* ✅ Main Content */}
-        <div className={`flex-grow-1 p-4 ${hasAccess ? "bg-light" : "bg-white"}`}>
-          {children}
-        </div>
+    <div className="d-flex min-vh-100">
+      {hasAccess && <Sidebar />}
+      <div className="d-none d-md-block flex-shrink-0" style={{ width: hasAccess ? "250px" : "0" }}></div>
+      <div className={`flex-grow-1 p-4 ${hasAccess ? "bg-light" : "bg-white"}`}>
+        {children}
       </div>
-    </ProtectedRoute>
+    </div>
   );
 };
 
@@ -39,27 +28,11 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        {/* 🔐 Public Login */}
         <Route path="/" element={<Login />} />
-
-        {/* 🔐 Admin & User Protected Routes */}
-        <Route
-          path="/add-member"
-          element={
-            <PageWrapper>
-              <AddMember />
-            </PageWrapper>
-          }
-        />
-
-        <Route
-          path="/dro"
-          element={
-            <PageWrapper>
-              <Dro />
-            </PageWrapper>
-          }
-        />
+        <Route path="/add-member" element={<PageWrapper><AddMember /></PageWrapper>} />
+        <Route path="/personal-profile" element={<PageWrapper><PersonalProfile /></PageWrapper>} />
+        <Route path="/dro" element={<PageWrapper><Dro /></PageWrapper>} />
+        <Route path="*" element={<Navigate to="/personal-profile" replace />} />
       </Routes>
     </Router>
   );

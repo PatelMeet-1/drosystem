@@ -128,58 +128,88 @@ exports.deleteDro = async (req, res) => {
 };
 
 /* =====================================================
-   🔥 6. ASSIGN DRO ACCESS (ADMIN)
+   🔥 6. ASSIGN DRO ACCESS (ADMIN) - 400 ERROR FIXED! ✅
 ===================================================== */
 exports.assignDroAccess = async (req, res) => {
   try {
-    const { memberId } = req.body;
-    if (!memberId) {
-      return res.status(400).json({ message: 'memberId required' });
+    console.log('🔥 ASSIGN CALLED - Body:', req.body); // 🔥 DEBUG LOG
+    
+    // 🔥 FIXED: Safe destructuring + trim
+    const memberName = req.body?.memberName?.trim();
+    
+    console.log('🔍 MemberName extracted:', memberName); // 🔥 DEBUG LOG
+    
+    if (!memberName || memberName.length === 0) {
+      console.log('❌ EMPTY MEMBER NAME - Body was:', req.body);
+      return res.status(400).json({ message: 'memberName required' });
     }
 
-    const member = await Member.findOne({ memberId });
+    // 🔥 Find member by exact name match
+    const member = await Member.findOne({ name: memberName });
+    
+    console.log('🔍 Member search result:', member ? member.name : 'NOT FOUND'); // 🔥 DEBUG
+    
     if (!member) {
-      return res.status(404).json({ message: 'Member not found' });
+      return res.status(404).json({ message: `Member "${memberName}" not found` });
     }
 
+    // 🔥 Grant DRO access
     member.droAccess = {
       enabled: true,
       assignedAt: new Date(),
+      memberId: member.memberId || `M${Math.floor(Math.random() * 999).toString().padStart(3, '0')}`
     };
 
     await member.save();
+    
+    console.log('✅ ASSIGN SUCCESS:', member.name, member.memberId); // 🔥 DEBUG
 
     res.json({
       success: true,
-      message: '✅ DRO access granted',
+      message: `✅ ${member.name} ko DRO access de diya`,
+      memberId: member.memberId,
+      memberName: member.name
     });
   } catch (err) {
     console.error('❌ Assign Error:', err);
-    res.status(500).json({ message: 'Assign failed' });
+    res.status(500).json({ message: 'Assign failed - ' + err.message });
   }
 };
 
 /* =====================================================
-   🔥 7. REMOVE DRO ACCESS (ADMIN)
+   🔥 7. REMOVE DRO ACCESS (ADMIN) - FIXED!
 ===================================================== */
 exports.removeDroAccess = async (req, res) => {
   try {
-    const { memberId } = req.body;
-    if (!memberId) {
-      return res.status(400).json({ message: 'memberId required' });
+    console.log('🔥 REMOVE CALLED - Body:', req.body); // 🔥 DEBUG
+    
+    const memberName = req.body?.memberName?.trim();
+    
+    if (!memberName || memberName.length === 0) {
+      console.log('❌ EMPTY MEMBER NAME - Body was:', req.body);
+      return res.status(400).json({ message: 'memberName required' });
     }
 
-    const member = await Member.findOne({ memberId });
+    const member = await Member.findOne({ name: memberName });
+    
     if (!member) {
-      return res.status(404).json({ message: 'Member not found' });
+      return res.status(404).json({ message: `Member "${memberName}" not found` });
     }
 
-    member.droAccess = { enabled: false };
+    member.droAccess = { 
+      enabled: false,
+      assignedAt: null
+    };
+    
     await member.save();
+
+    console.log('✅ REMOVE SUCCESS:', member.name); // 🔥 DEBUG
 
     res.json({
       success: true,
-      message: '❌ DRO access removed',
+      message: `❌ ${member.name} se DRO access hata diya`,
+      memberId: member.memberId,
+      memberName: member.name
     });
   } catch (err) {
     console.error('❌ Remove Error:', err);
@@ -192,8 +222,8 @@ exports.removeDroAccess = async (req, res) => {
 ===================================================== */
 exports.checkDroAccess = async (req, res) => {
   try {
-    const { memberId } = req.params;
-    const member = await Member.findOne({ memberId });
+    const { memberName } = req.params;
+    const member = await Member.findOne({ name: memberName });
 
     res.json({
       hasDroAccess: member?.droAccess?.enabled || false,
