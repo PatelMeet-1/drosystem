@@ -11,7 +11,7 @@ const Login = () => {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("admin");
+  const [role, setRole] = useState("user");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
