@@ -176,8 +176,9 @@ const Login = () => {
           </div>
 
           <p className="text-center text-muted mt-3 small">
-            © {new Date().getFullYear()} Panel
+            Created by Meet patel
           </p>
+
         </div>
       </div>
     </div>
