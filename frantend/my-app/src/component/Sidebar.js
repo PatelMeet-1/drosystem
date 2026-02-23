@@ -1,27 +1,37 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaBars, FaSignOutAlt, FaUserPlus, FaFileAlt } from "react-icons/fa";
+import { FaBars, FaSignOutAlt, FaUserPlus, FaFileAlt, FaUser } from "react-icons/fa";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const Sidebar = () => {
   const [show, setShow] = useState(false);
   const navigate = useNavigate();
 
-  // 🔹 Get role directly from localStorage - FIXED LOGIC
+  // ✅ SAME LOGIC AS APP.JS
   const token = localStorage.getItem("token");
   const user = localStorage.getItem("user");
-  const isAdmin = !!token;  // Admin if token exists
-  const isUser = !!user && !token;  // User if user exists but no token
+  const isAdmin = Boolean(token);
+  const isUser = Boolean(user);
+
+  // ✅ User data parse karo for display
+  let userData = null;
+  if (user) {
+    try {
+      userData = JSON.parse(user);
+    } catch (e) {
+      console.error("User parse error:", e);
+    }
+  }
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    localStorage.clear();
     navigate("/");
+    window.location.reload();
   };
 
   return (
     <>
-      {/* 🔹 TOGGLE BUTTON (ONLY MOBILE) */}
+      {/* MOBILE TOGGLE */}
       <button
         className="btn btn-light d-md-none position-fixed"
         style={{ top: "15px", left: "15px", zIndex: 1200 }}
@@ -30,13 +40,9 @@ const Sidebar = () => {
         <FaBars />
       </button>
 
-      {/* 🔹 SIDEBAR */}
+      {/* SIDEBAR */}
       <div
-        className={`
-          bg-dark text-white p-3
-          ${show ? "d-block" : "d-none"}
-          d-md-block
-        `}
+        className={`bg-dark text-white p-3 ${show ? "d-block" : "d-none"} d-md-block`}
         style={{
           width: "250px",
           height: "100vh",
@@ -44,15 +50,28 @@ const Sidebar = () => {
           top: 0,
           left: 0,
           overflowY: "auto",
-          zIndex: 1100,
+          zIndex: 1100
         }}
       >
         <h4 className="text-center mb-4 text-info">
-          {isAdmin ? "Admin Panel" : isUser ? "User Panel" : ""}
+          {isAdmin ? "🛡️ Admin Panel" : "👤 User Panel"}
         </h4>
 
+        {/* ✅ USER PROFILE SECTION */}
+        {isUser && userData && (
+          <div className="bg-secondary rounded p-3 mb-3">
+            <div className="text-center">
+              <FaUser className="mb-2" size={40} />
+              <h6 className="mb-1">{userData.name || "User"}</h6>
+              <small className="text-light">ID: {userData.memberId}</small>
+              <br />
+              <small className="text-light">📞 {userData.contact || "N/A"}</small>
+            </div>
+          </div>
+        )}
+
         <ul className="nav flex-column">
-          {/* 🔹 ADMIN ONLY - Add Member */}
+          {/* ADMIN ONLY */}
           {isAdmin && (
             <li className="nav-item mb-2">
               <Link
@@ -60,33 +79,39 @@ const Sidebar = () => {
                 to="/add-member"
                 onClick={() => setShow(false)}
               >
-                <FaUserPlus className="me-2 text-success" />
-                Add Member
+                <FaUserPlus className="me-2 text-success" /> Add Member
               </Link>
             </li>
           )}
 
-          {/* 🔹 DRO - VISIBLE TO BOTH Admin & User */}
-          {(isAdmin || isUser) && (
+          {/* ✅ USER PROFILE LINK */}
+          {isUser && (
             <li className="nav-item mb-2">
               <Link
                 className="nav-link text-white"
-                to="/dro"
+                to="/personal-profile"
                 onClick={() => setShow(false)}
               >
-                <FaFileAlt className="me-2 text-warning" />
-                DRO
+                <FaUser className="me-2 text-info" /> My Profile
               </Link>
             </li>
           )}
+
+          {/* USER + ADMIN */}
+          <li className="nav-item mb-2">
+            <Link
+              className="nav-link text-white"
+              to="/dro"
+              onClick={() => setShow(false)}
+            >
+              <FaFileAlt className="me-2 text-warning" /> DRO
+            </Link>
+          </li>
         </ul>
 
-        {(isAdmin || isUser) && (
-          <button className="btn btn-danger w-100 mt-4" onClick={handleLogout}>
-            <FaSignOutAlt className="me-2" />
-            Logout
-          </button>
-        )}
+        <button className="btn btn-danger w-100 mt-4" onClick={handleLogout}>
+          <FaSignOutAlt className="me-2" /> Logout
+        </button>
       </div>
     </>
   );

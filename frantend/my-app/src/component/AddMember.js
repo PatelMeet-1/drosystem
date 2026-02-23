@@ -13,6 +13,8 @@ import {
   Alert
 } from "react-bootstrap";
 
+const API_URL = process.env.REACT_APP_API_URL || "https://drosystem.onrender.com";
+
 const AddMember = () => {
   // Form states
   const [memberId, setMemberId] = useState("");
@@ -54,7 +56,7 @@ const AddMember = () => {
       setLoadingMembers(true);
       console.log("🔥 Fetching members...");
       
-      const res = await axios.get("https://drosystem.onrender.com/api/members/", config);
+      const res = await axios.get(`${API_URL}/api/members/`, config);
       console.log("✅ Backend Response:", res.data);
       
       // Backend format: { success: true, data: [] }
@@ -87,7 +89,7 @@ const AddMember = () => {
     
     try {
       const res = await axios.post(
-        'https://drosystem.onrender.com/api/dro/admin/assign-dro-access',
+        `${API_URL}/api/dro/admin/assign-dro-access`,
         { memberName },
         config
       );
@@ -114,7 +116,7 @@ const AddMember = () => {
           payload.password = password;
         }
         res = await axios.put(
-          `https://drosystem.onrender.com/api/members/${editMember._id}`,
+          `${API_URL}/api/members/${editMember._id}`,
           payload,
           config
         );
@@ -123,7 +125,7 @@ const AddMember = () => {
       } else {
         // Add new
         res = await axios.post(
-          "https://drosystem.onrender.com/api/members/add",
+          `${API_URL}/api/members/add`,
           { memberId, name, contact, password },
           config
         );
@@ -145,7 +147,7 @@ const AddMember = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure?")) return;
     try {
-      await axios.delete(`https://drosystem.onrender.com/api/members/${id}`, config);
+      await axios.delete(`${API_URL}/api/members/${id}`, config);
       showToastMsg("Member deleted!");
       fetchMembers();
     } catch (err) {

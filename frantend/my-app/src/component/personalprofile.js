@@ -1,6 +1,9 @@
 // src/component/PersonalProfile.jsx - SIMPLE USER VERSION
 import React, { useState, useEffect } from "react";
 import { Toast, ToastContainer, Button, Form, Card, Spinner, Alert } from "react-bootstrap";
+import axios from "axios";
+
+const API_URL = process.env.REACT_APP_API_URL || "https://drosystem.onrender.com";
 
 const PersonalProfile = () => {
   const [name, setName] = useState("");
@@ -10,8 +13,10 @@ const PersonalProfile = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [toastVariant, setToastVariant] = useState("success");
+  const [memberId, setMemberId] = useState("");
 
   const user = localStorage.getItem("user");
+  const token = localStorage.getItem("userToken"); // ✅ Token get karo
 
   useEffect(() => {
     if (user) {
@@ -19,6 +24,7 @@ const PersonalProfile = () => {
         const userData = JSON.parse(user);
         setName(userData.name || "");
         setContact(userData.contact || "");
+        setMemberId(userData.memberId || "");
       } catch (err) {
         console.error("User data parse error:", err);
       }
@@ -30,23 +36,45 @@ const PersonalProfile = () => {
     setLoading(true);
     
     try {
-      // User update API - YE ENDPOINT APNE BACKEND ME BANANA PADega
-      const response = await fetch('https://drosystem.onrender.com/api/users/update-profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, contact, password })
-      });
+      // ✅ Correct endpoint with token
+      const updateData = {
+        name,
+        contact,
+      };
+      
+      // ✅ Password agar diya hai to add karo
+      if (password && password.trim() !== "") {
+        updateData.password = password;
+      }
 
-      if (response.ok) {
-        // Update localStorage
-        localStorage.setItem("user", JSON.stringify({ ...JSON.parse(user), name, contact }));
+      const response = await axios.put(
+        `${API_URL}/api/members/profile`,
+        updateData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` // ✅ Token send karo
+          }
+        }
+      );
+
+      if (response.data.success) {
+        // ✅ Update localStorage with new data
+        const updatedUser = {
+          id: response.data.data._id || JSON.parse(user).id,
+          memberId: response.data.data.memberId || memberId,
+          name: response.data.data.name,
+          contact: response.data.data.contact,
+        };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        
         setToastMessage("✅ Profile updated successfully!");
         setToastVariant("success");
       } else {
         throw new Error("Update failed");
       }
     } catch (err) {
-      setToastMessage("❌ Failed to update profile");
+      setToastMessage(err.response?.data?.message || "❌ Failed to update profile");
       setToastVariant("danger");
     } finally {
       setLoading(false);
@@ -66,6 +94,16 @@ const PersonalProfile = () => {
 
       <Card className="shadow-lg p-4 mx-auto" style={{ maxWidth: "500px" }}>
         <Form onSubmit={handleUpdate}>
+          <Form.Group className="mb-3">
+            <Form.Label><strong>Member ID</strong></Form.Label>
+            <Form.Control
+              type="text"
+              value={memberId}
+              disabled
+              className="bg-light"
+            />
+          </Form.Group>
+
           <Form.Group className="mb-3">
             <Form.Label><strong>Full Name</strong></Form.Label>
             <Form.Control

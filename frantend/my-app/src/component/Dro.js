@@ -11,8 +11,12 @@ import {
 // 🔥 SAFE TOSTRING FUNCTION
 const safeToString = (value) => (value || 0).toString().padStart(2, '0');
 
+const API_URL = process.env.REACT_APP_API_URL || 'https://drosystem.onrender.com';
+
 const Dro = () => {
   const token = localStorage.getItem('token');
+  const userToken = localStorage.getItem('userToken');
+  const authToken = token || userToken; // ✅ Admin = token, User = userToken
   const user = localStorage.getItem('user');
   const parsedUser = user ? JSON.parse(user) : null;
   const userName = parsedUser?.name || '';
@@ -40,18 +44,18 @@ const Dro = () => {
   const [globalTimer, setGlobalTimer] = useState({ hours: 0, minutes: 0, seconds: 5 });
   const [timerLoading, setTimerLoading] = useState(false);
 
-  // 🔥 PERFECT API CONFIGS WITH TOKEN
+  // 🔥 PERFECT API CONFIGS - Admin (token) ya User (userToken) dono ke liye
   const getApiConfig = useCallback((useToken = false) => {
-    if (useToken && token) {
+    if (useToken && authToken) {
       return { 
         headers: { 
-          Authorization: `Bearer ${token}`, 
+          Authorization: `Bearer ${authToken}`, 
           'Content-Type': 'application/json' 
         } 
       };
     }
     return { headers: { 'Content-Type': 'application/json' } };
-  }, [token]);
+  }, [authToken]);
 
   // 🔥 Fisher-Yates Shuffle
   const fisherYatesShuffle = useCallback((array) => {
@@ -63,15 +67,15 @@ const Dro = () => {
     return shuffled;
   }, []);
 
-  // 🔥 FIXED MEMBERS API
+  // 🔥 FIXED MEMBERS API - User bhi members dekh sake (userToken se)
   const fetchMembersForDro = useCallback(async () => {
     setMembersLoading(true);
     setError('');
-    console.log('🔍 Fetching members... Token:', !!token);
+    console.log('🔍 Fetching members... Auth:', !!authToken);
     
     try {
       const config = getApiConfig(true);
-      const res = await axios.get('https://drosystem.onrender.com/api/members/', config);
+      const res = await axios.get(`${API_URL}/api/members/`, config);
       
       const membersData = Array.isArray(res.data) 
         ? res.data 
@@ -85,6 +89,7 @@ const Dro = () => {
       if (err.response?.status === 401) {
         setError('⚠️ Login required! Token expire ho gaya.');
         localStorage.removeItem('token');
+        localStorage.removeItem('userToken');
         localStorage.removeItem('user');
       } else {
         setError(`❌ Members load nahi hue (${err.response?.status}): ${err.response?.data?.message || err.message}`);
@@ -93,37 +98,37 @@ const Dro = () => {
     } finally {
       setMembersLoading(false);
     }
-  }, [getApiConfig]);
+  }, [getApiConfig, authToken]);
 
-  // 🔥 Other API functions
+  // 🔥 Other API functions - User bhi history dekh sake
   const fetchDroHistory = useCallback(async () => {
-    if (!token) return;
+    if (!authToken) return;
     try {
-      const res = await axios.get('https://drosystem.onrender.com/api/dro/history', getApiConfig(true));
+      const res = await axios.get(`${API_URL}/api/dro/history`, getApiConfig(true));
       setDroHistory(res.data || []);
     } catch (err) {
       console.error('History fetch error:', err);
       setDroHistory([]);
     }
-  }, [getApiConfig, token]);
+  }, [getApiConfig, authToken]);
 
   const fetchGlobalTimer = useCallback(async () => {
     try {
-      const config = token ? getApiConfig(true) : getApiConfig(false);
-      const res = await axios.get('https://drosystem.onrender.com/api/dro/get-timer', config);
+      const config = authToken ? getApiConfig(true) : getApiConfig(false);
+      const res = await axios.get(`${API_URL}/api/dro/get-timer`, config);
       console.log('⏰ Global Timer:', res.data);
       setGlobalTimer(res.data.timer || { hours: 0, minutes: 0, seconds: 5 });
     } catch (err) {
       console.error('Timer fetch error:', err);
       setGlobalTimer({ hours: 0, minutes: 0, seconds: 5 });
     }
-  }, [getApiConfig, token]);
+  }, [getApiConfig, authToken]);
 
   const fetchMembersWithDroStatus = useCallback(async () => {
     if (!token) return;
     setAdminMembersLoading(true);
     try {
-      const res = await axios.get('https://drosystem.onrender.com/api/dro/members-with-status', getApiConfig(true));
+      const res = await axios.get(`${API_URL}/api/dro/members-with-status`, getApiConfig(true));
       setMembersWithStatus(res.data || []);
     } catch (err) {
       console.error('Status fetch error:', err);
@@ -136,7 +141,7 @@ const Dro = () => {
   const checkCurrentUserDroStatus = useCallback(async () => {
     if (!userName) return;
     try {
-      const res = await axios.get(`https://drosystem.onrender.com/api/dro/check/${encodeURIComponent(userName)}`, getApiConfig(false));
+      const res = await axios.get(`${API_URL}/api/dro/check/${encodeURIComponent(userName)}`, getApiConfig(false));
       setIsDroUser(res.data.hasDroAccess);
     } catch (err) {
       setIsDroUser(false);
@@ -178,7 +183,7 @@ const Dro = () => {
         }))
       };
 
-      const response = await axios.post('https://drosystem.onrender.com/api/dro/save', droData, getApiConfig(true));
+      const response = await axios.post(`${API_URL}/api/dro/save`, droData, getApiConfig(true));
       console.log('✅ DRO SAVED:', response.data);
       
       await fetchDroHistory();
@@ -201,7 +206,7 @@ const Dro = () => {
 
     setTimerLoading(true);
     try {
-      await axios.post('https://drosystem.onrender.com/api/dro/set-timer', globalTimer, getApiConfig(true));
+      await axios.post(`${API_URL}/api/dro/set-timer`, globalTimer, getApiConfig(true));
       alert(`✅ TIMER SET: ${safeToString(globalTimer.hours)}h:${safeToString(globalTimer.minutes)}m:${safeToString(globalTimer.seconds)}s`);
       await fetchGlobalTimer();
       setShowTimerModal(false);
@@ -230,8 +235,8 @@ const Dro = () => {
     setDroUsersLoading(true);
     try {
       const endpoint = confirmAction === 'assign' 
-        ? 'https://drosystem.onrender.com/api/dro/admin/assign-dro-access'
-        : 'https://drosystem.onrender.com/api/dro/admin/remove-dro-access';
+        ? `${API_URL}/api/dro/admin/assign-dro-access`
+        : `${API_URL}/api/dro/admin/remove-dro-access`;
       
       console.log('🔥 GRANT/REMOVE REQUEST:', { memberName: confirmMemberName, endpoint });
       
@@ -254,16 +259,16 @@ const Dro = () => {
     }
   }, [confirmAction, confirmMemberName, getApiConfig, fetchMembersWithDroStatus]);
 
-  // 🔥 FIXED INITIALIZATION - COMPLETE DEPENDENCIES
+  // 🔥 FIXED INITIALIZATION - User login par bhi members + history load
   useEffect(() => {
-    console.log('🔥 DRO MOUNTED - Token:', !!token);
+    console.log('🔥 DRO MOUNTED - Admin:', !!token, 'Auth:', !!authToken);
     
     const init = async () => {
       setIsAdmin(!!token);
       
       await Promise.allSettled([
         fetchMembersForDro(),
-        token ? fetchDroHistory() : Promise.resolve(),
+        authToken ? fetchDroHistory() : Promise.resolve(),
         fetchGlobalTimer(),
         token ? fetchMembersWithDroStatus() : Promise.resolve(),
         userName ? checkCurrentUserDroStatus() : Promise.resolve()
@@ -273,7 +278,7 @@ const Dro = () => {
     };
     
     init();
-  }, [fetchMembersForDro, fetchDroHistory, fetchGlobalTimer, fetchMembersWithDroStatus, checkCurrentUserDroStatus, token, userName]);
+  }, [fetchMembersForDro, fetchDroHistory, fetchGlobalTimer, fetchMembersWithDroStatus, checkCurrentUserDroStatus, token, authToken, userName]);
 
   // 🔥 COMPUTED VALUES
   const droUsersCount = membersWithStatus.filter(m => m.droAccess?.enabled).length;
@@ -597,7 +602,7 @@ return (
 
         {/* 🔥 MODALS - REMAINS SAME */}
         {/* DRO RESULT MODAL */}
-        <Modal show={showDroModal} onHide={() => setShowDroModal(false)} size="xl" centered>
+        <Modal show={showDroModal} onHide={() => setShowDroModal(false)} size="l" centered>
           <Modal.Header closeButton className="bg-primary text-white">
             <Modal.Title className="fw-bold h3">🎯 DRO Results</Modal.Title>
           </Modal.Header>
