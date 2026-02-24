@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaBars, FaSignOutAlt, FaUserPlus, FaFileAlt, FaUser } from "react-icons/fa";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -7,13 +7,11 @@ const Sidebar = () => {
   const [show, setShow] = useState(false);
   const navigate = useNavigate();
 
-  // ✅ SAME LOGIC AS APP.JS
   const token = localStorage.getItem("token");
   const user = localStorage.getItem("user");
   const isAdmin = Boolean(token);
   const isUser = Boolean(user);
 
-  // ✅ User data parse karo for display
   let userData = null;
   if (user) {
     try {
@@ -23,11 +21,34 @@ const Sidebar = () => {
     }
   }
 
+  // ✅ FIXED: Page refresh safe auto-logout
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      const navigation = performance.getEntriesByType('navigation')[0];
+      
+      // Browser/Tab close pe sirf clear karo (reload pe nahi)
+      if (navigation?.type !== 'reload') {
+        localStorage.clear();
+        console.log("🛑 Browser/Tab closed - Auto logout triggered!");
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
+
   const handleLogout = () => {
     localStorage.clear();
     navigate("/");
     window.location.reload();
   };
+
+  if (!isAdmin && !isUser) {
+    return null;
+  }
 
   return (
     <>
@@ -40,7 +61,7 @@ const Sidebar = () => {
         <FaBars />
       </button>
 
-      {/* SIDEBAR */}
+      {/* SIDEBAR - SAME JSX */}
       <div
         className={`bg-dark text-white p-3 ${show ? "d-block" : "d-none"} d-md-block`}
         style={{
@@ -57,7 +78,6 @@ const Sidebar = () => {
           {isAdmin ? "🛡️ Admin Panel" : "👤 User Panel"}
         </h4>
 
-        {/* ✅ USER PROFILE SECTION */}
         {isUser && userData && (
           <div className="bg-secondary rounded p-3 mb-3">
             <div className="text-center">
@@ -71,39 +91,24 @@ const Sidebar = () => {
         )}
 
         <ul className="nav flex-column">
-          {/* ADMIN ONLY */}
           {isAdmin && (
             <li className="nav-item mb-2">
-              <Link
-                className="nav-link text-white"
-                to="/add-member"
-                onClick={() => setShow(false)}
-              >
+              <Link className="nav-link text-white" to="/add-member" onClick={() => setShow(false)}>
                 <FaUserPlus className="me-2 text-success" /> Add Member
               </Link>
             </li>
           )}
 
-          {/* ✅ USER PROFILE LINK */}
           {isUser && (
             <li className="nav-item mb-2">
-              <Link
-                className="nav-link text-white"
-                to="/personal-profile"
-                onClick={() => setShow(false)}
-              >
+              <Link className="nav-link text-white" to="/personal-profile" onClick={() => setShow(false)}>
                 <FaUser className="me-2 text-info" /> My Profile
               </Link>
             </li>
           )}
 
-          {/* USER + ADMIN */}
           <li className="nav-item mb-2">
-            <Link
-              className="nav-link text-white"
-              to="/dro"
-              onClick={() => setShow(false)}
-            >
+            <Link className="nav-link text-white" to="/dro" onClick={() => setShow(false)}>
               <FaFileAlt className="me-2 text-warning" /> DRO
             </Link>
           </li>
