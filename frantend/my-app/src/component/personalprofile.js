@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Toast, ToastContainer, Button, Form, Card, Spinner, Alert } from "react-bootstrap";
 import axios from "axios";
 
-const API_URL = process.env.REACT_APP_API_URL || "https://drosystem.onrender.com";
+const API_URL = process.env.REACT_APP_API_URL || "https://drosystem-kjzk.onrender.com";
 
 const PersonalProfile = () => {
   const [name, setName] = useState("");
